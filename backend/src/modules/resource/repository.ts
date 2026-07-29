@@ -1,10 +1,13 @@
 import { prisma } from "../../shared/prisma.ts";
+import { ResourceType } from "../../../generated/prisma/client.ts";
 
 export const resourceRepository = {
   create(data: {
     ownerId: string;
-    url: string;
+    type: ResourceType;
+    url?: string;
     title: string;
+    content?: string;
     description?: string;
     notes?: string;
     platform?: string;
@@ -30,7 +33,10 @@ export const resourceRepository = {
   update(
     id: string,
     data: {
+      type?: ResourceType;
+      url?: string;
       title?: string;
+      content?: string;
       description?: string;
       notes?: string;
       platform?: string;

@@ -1,3 +1,4 @@
+import { ResourceType } from "../../../generated/prisma/client.ts";
 import { resourceRepository } from "./repository.ts";
 import { AppError } from "../../shared/errors.ts";
 import { metadataQueue } from "../metadata/queue.ts";
@@ -7,10 +8,12 @@ export const resourceService = {
   async create(ownerId: string, input: CreateResourceInput): Promise<SafeResource> {
     const resource = await resourceRepository.create({ ownerId, ...input });
 
-    await metadataQueue.add("extract", {
-      resourceId: resource.id,
-      url: input.url,
-    });
+    if (resource.type === ResourceType.URL) {
+      await metadataQueue.add("extract", {
+        resourceId: resource.id,
+        url: input.url!,
+      });
+    }
 
     return resource;
   },

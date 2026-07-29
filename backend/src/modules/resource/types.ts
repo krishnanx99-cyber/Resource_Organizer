@@ -1,4 +1,4 @@
-import { type Resource } from "../../../generated/prisma/client.ts";
+import { type Resource, ResourceType } from "../../../generated/prisma/client.ts";
 
 export type SafeResource = Pick<
   Resource,
@@ -11,8 +11,10 @@ export type SafeResource = Pick<
   | "platform"
   | "sourceType"
   | "creator"
+  | "content"
   | "metadata"
   | "whySaved"
+  | "type"
   | "openedCount"
   | "firstOpenedAt"
   | "lastOpenedAt"
@@ -21,8 +23,10 @@ export type SafeResource = Pick<
 >;
 
 export interface CreateResourceInput {
-  url: string;
+  type: ResourceType;
+  url?: string;
   title: string;
+  content?: string;
   description?: string;
   notes?: string;
   platform?: string;
@@ -33,7 +37,10 @@ export interface CreateResourceInput {
 }
 
 export interface UpdateResourceInput {
+  type?: ResourceType;
+  url?: string;
   title?: string;
+  content?: string;
   description?: string;
   notes?: string;
   platform?: string;
