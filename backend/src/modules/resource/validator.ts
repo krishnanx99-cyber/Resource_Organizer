@@ -10,6 +10,7 @@ export const createResourceSchema = z.object({
   sourceType: z.string().optional(),
   creator: z.string().optional(),
   metadata: z.record(z.unknown()).optional(),
+  whySaved: z.string().optional(),
 }) satisfies z.Schema<CreateResourceInput>;
 
 export const updateResourceSchema = z.object({
@@ -20,4 +21,5 @@ export const updateResourceSchema = z.object({
   sourceType: z.string().optional(),
   creator: z.string().optional(),
   metadata: z.record(z.unknown()).optional(),
+  whySaved: z.string().optional(),
 }) satisfies z.Schema<UpdateResourceInput>;

@@ -11,6 +11,7 @@ export const resourceRepository = {
     sourceType?: string;
     creator?: string;
     metadata?: Record<string, unknown>;
+    whySaved?: string;
   }) {
     return prisma.resource.create({ data });
   },
@@ -36,6 +37,7 @@ export const resourceRepository = {
       sourceType?: string;
       creator?: string;
       metadata?: Record<string, unknown>;
+      whySaved?: string;
     },
   ) {
     return prisma.resource.update({ where: { id }, data });

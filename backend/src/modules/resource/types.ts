@@ -12,6 +12,7 @@ export type SafeResource = Pick<
   | "sourceType"
   | "creator"
   | "metadata"
+  | "whySaved"
   | "openedCount"
   | "firstOpenedAt"
   | "lastOpenedAt"
@@ -28,6 +29,7 @@ export interface CreateResourceInput {
   sourceType?: string;
   creator?: string;
   metadata?: Record<string, unknown>;
+  whySaved?: string;
 }
 
 export interface UpdateResourceInput {
@@ -38,4 +40,5 @@ export interface UpdateResourceInput {
   sourceType?: string;
   creator?: string;
   metadata?: Record<string, unknown>;
+  whySaved?: string;
 }

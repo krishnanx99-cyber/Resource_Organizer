@@ -36,6 +36,7 @@ model Resource {
   sourceType    String?
   creator       String?
   metadata      Json?
+  whySaved      String?
   openedCount   Int       @default(0)
   firstOpenedAt DateTime?
   lastOpenedAt  DateTime?
