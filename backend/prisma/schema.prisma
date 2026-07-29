@@ -44,6 +44,7 @@ model Resource {
   whySaved      String?
   type          ResourceType @default(URL)
   content        String?
+  embedding      Unsupported("vector(1536)")?
   openedCount   Int       @default(0)
   firstOpenedAt DateTime?
   lastOpenedAt  DateTime?
