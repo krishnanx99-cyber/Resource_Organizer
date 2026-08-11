@@ -15,6 +15,10 @@
     // "types": ["node"],
     // and npm install -D @types/node
 
+    // The codebase imports with explicit .ts extensions (tsx runtime).
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+
     // Other Outputs
     "sourceMap": true,
     "declaration": true,
@@ -22,7 +26,6 @@
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
 
     // Style Options
     // "noImplicitReturns": true,

@@ -3,6 +3,7 @@ import { env, logger } from "./config/index.ts";
 import { redis } from "./config/redis.ts";
 import { prisma } from "./shared/prisma.ts";
 import { startMetadataWorker } from "./modules/metadata/queue.ts";
+import { startEmbeddingWorker } from "./modules/embedding/queue.ts";
 
 try {
   await prisma.$queryRaw`SELECT 1`;
@@ -22,6 +23,9 @@ try {
 
 startMetadataWorker();
 logger.info("Metadata worker started");
+
+startEmbeddingWorker();
+logger.info("Embedding worker started");
 
 app.listen(env.PORT, () => {
   logger.info(`Server running on port ${env.PORT}`);

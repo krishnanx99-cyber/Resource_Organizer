@@ -10,6 +10,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   JWT_SECRET: z.string().min(32),
   REDIS_URL: z.string().url().default("redis://localhost:6379"),
+  OPENAI_API_KEY: z.string().default(""),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -1,5 +1,6 @@
 import { resourceService } from "./src/modules/resource/service.ts";
 import { prisma } from "./src/shared/prisma.ts";
+import { ResourceType } from "./generated/prisma/client.ts";
 async function main() {
   const user = await prisma.user.upsert({
     where: { email: "svc-match@test.com" },
@@ -7,6 +8,7 @@ async function main() {
     update: {},
   });
   const r = await resourceService.create(user.id, {
+    type: ResourceType.URL,
     url: "https://svc-match.com",
     title: "Svc Match",
     whySaved: "match reason",

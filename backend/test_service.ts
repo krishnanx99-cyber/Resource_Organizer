@@ -1,6 +1,7 @@
 import { prisma } from "./src/shared/prisma.ts";
 import { resourceService } from "./src/modules/resource/service.ts";
 import { env } from "./src/config/env.ts";
+import { ResourceType } from "./generated/prisma/client.ts";
 async function main() {
   try {
     const user = await prisma.user.upsert({
@@ -9,6 +10,7 @@ async function main() {
       update: {},
     });
     const r = await resourceService.create(user.id, {
+      type: ResourceType.URL,
       url: "https://service-test.com",
       title: "Service Test",
       whySaved: "service reason",

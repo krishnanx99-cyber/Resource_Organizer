@@ -9,7 +9,7 @@ const baseFields = {
   platform: z.string().optional(),
   sourceType: z.string().optional(),
   creator: z.string().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   whySaved: z.string().optional(),
 };
 
@@ -36,7 +36,7 @@ export const updateResourceSchema = z.object({
   platform: z.string().optional(),
   sourceType: z.string().optional(),
   creator: z.string().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   whySaved: z.string().optional(),
 }).superRefine((data, ctx) => {
   if (data.type === ResourceType.URL) {

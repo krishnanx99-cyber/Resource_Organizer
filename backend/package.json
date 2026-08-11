@@ -6,7 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "tsx src/server.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "test": "tsx test_embedding_pipeline.ts",
+    "test:embedding": "tsx test_embedding_pipeline.ts"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +27,7 @@
     "express": "^5.2.1",
     "ioredis": "^5.11.1",
     "jsonwebtoken": "^9.0.3",
+    "openai": "^7.1.0",
     "pg": "^8.22.0",
     "pino": "^10.3.1",
     "pino-pretty": "^13.1.3",
