@@ -3,8 +3,13 @@ import { resourceRepository } from "./repository.ts";
 import { AppError } from "../../shared/errors.ts";
 import { metadataQueue } from "../metadata/queue.ts";
 import { embeddingQueue } from "../embedding/queue.ts";
-import { semanticFieldsChanged } from "../embedding/embedding.service.ts";
-import type { SafeResource, CreateResourceInput, UpdateResourceInput } from "./types.ts";
+import { embeddingService, semanticFieldsChanged } from "../embedding/embedding.service.ts";
+import type {
+  SafeResource,
+  SearchResult,
+  CreateResourceInput,
+  UpdateResourceInput,
+} from "./types.ts";
 
 export const resourceService = {
   async create(ownerId: string, input: CreateResourceInput): Promise<SafeResource> {
@@ -60,5 +65,17 @@ export const resourceService = {
       throw new AppError(404, "Resource not found");
     }
     await resourceRepository.delete(resourceId);
+  },
+
+  async search(ownerId: string, query: string, limit: number, offset: number): Promise<SearchResult> {
+    let queryEmbedding: number[];
+    try {
+      queryEmbedding = await embeddingService.generateEmbedding(query);
+    } catch {
+      throw new AppError(502, "Search temporarily unavailable");
+    }
+
+    const items = await resourceRepository.searchByEmbedding(ownerId, queryEmbedding, limit, offset);
+    return { items, count: items.length, limit, offset };
   },
 };

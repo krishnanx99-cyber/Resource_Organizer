@@ -1,6 +1,7 @@
 import { prisma } from "../../shared/prisma.ts";
 import { ResourceType, type Prisma } from "../../../generated/prisma/client.ts";
 import { EMBEDDING_DIMENSIONS } from "../embedding/embedding.service.ts";
+import type { SearchResultItem } from "./types.ts";
 
 export const resourceRepository = {
   create(data: {
@@ -85,6 +86,25 @@ export const resourceRepository = {
     `;
     const row = rows[0];
     return row ? { embedding: row.embedding, dimension: row.dimension } : null;
+  },
+
+  async searchByEmbedding(
+    ownerId: string,
+    query: number[],
+    limit: number,
+    offset: number,
+  ): Promise<SearchResultItem[]> {
+    return prisma.$queryRaw<SearchResultItem[]>`
+      SELECT "id", "ownerId", url, title, description, notes, platform, "sourceType",
+             creator, metadata, "whySaved", type, content, "openedCount",
+             "firstOpenedAt", "lastOpenedAt", "createdAt", "updatedAt",
+             1 - (embedding <=> ${`[${query.join(",")}]`}::vector)::real AS similarity
+      FROM "Resource"
+      WHERE "ownerId" = ${ownerId}
+        AND embedding IS NOT NULL
+      ORDER BY embedding <=> ${`[${query.join(",")}]`}::vector
+      LIMIT ${limit} OFFSET ${offset}
+    `;
   },
 
   delete(id: string) {

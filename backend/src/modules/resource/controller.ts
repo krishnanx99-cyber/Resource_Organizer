@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { resourceService } from "./service.ts";
-import { createResourceSchema, updateResourceSchema } from "./validator.ts";
+import { createResourceSchema, updateResourceSchema, searchQuerySchema } from "./validator.ts";
 
 export const resourceController = {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -17,6 +17,16 @@ export const resourceController = {
     try {
       const resources = await resourceService.findAllByOwner(_req.user!.userId);
       res.json(resources);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async search(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { q, limit, offset } = searchQuerySchema.parse(req.query);
+      const result = await resourceService.search(req.user!.userId, q, limit, offset);
+      res.json(result);
     } catch (err) {
       next(err);
     }

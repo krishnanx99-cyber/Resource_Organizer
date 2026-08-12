@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc",
     "test": "tsx test_embedding_pipeline.ts",
-    "test:embedding": "tsx test_embedding_pipeline.ts"
+    "test:embedding": "tsx test_embedding_pipeline.ts",
+    "test:search": "tsx test_semantic_search.ts"
   },
   "keywords": [],
   "author": "",

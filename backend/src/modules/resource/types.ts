@@ -49,3 +49,12 @@ export interface UpdateResourceInput {
   metadata?: Record<string, unknown>;
   whySaved?: string;
 }
+
+export type SearchResultItem = SafeResource & { similarity: number };
+
+export interface SearchResult {
+  items: SearchResultItem[];
+  count: number;
+  limit: number;
+  offset: number;
+}

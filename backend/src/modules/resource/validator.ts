@@ -2,6 +2,12 @@ import { z } from "zod/v4";
 import { ResourceType } from "../../../generated/prisma/client.ts";
 import type { CreateResourceInput, UpdateResourceInput } from "./types.ts";
 
+export const searchQuerySchema = z.object({
+  q: z.string().trim().min(3, "Query is too short").max(200, "Query is too long"),
+  limit: z.coerce.number().int().min(1).max(50).default(10),
+  offset: z.coerce.number().int().min(0).max(1000).default(0),
+});
+
 const baseFields = {
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
