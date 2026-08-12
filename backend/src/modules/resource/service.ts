@@ -7,6 +7,7 @@ import { embeddingService, semanticFieldsChanged } from "../embedding/embedding.
 import type {
   SafeResource,
   SearchResult,
+  SimilarResourcesResult,
   CreateResourceInput,
   UpdateResourceInput,
 } from "./types.ts";
@@ -77,5 +78,25 @@ export const resourceService = {
 
     const items = await resourceRepository.searchByEmbedding(ownerId, queryEmbedding, limit, offset);
     return { items, count: items.length, limit, offset };
+  },
+
+  async findSimilar(
+    resourceId: string,
+    ownerId: string,
+    limit: number,
+  ): Promise<SimilarResourcesResult> {
+    const source = await resourceRepository.findSourceEmbedding(resourceId);
+    if (!source) {
+      throw new AppError(404, "Resource not found");
+    }
+    if (source.ownerId !== ownerId) {
+      throw new AppError(404, "Resource not found");
+    }
+    if (source.embedding == null) {
+      return { items: [], count: 0, limit };
+    }
+
+    const items = await resourceRepository.searchByEmbedding(ownerId, source.embedding, limit, 0, resourceId);
+    return { items, count: items.length, limit };
   },
 };

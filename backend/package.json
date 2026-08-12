@@ -10,7 +10,8 @@
     "build": "tsc",
     "test": "tsx test_embedding_pipeline.ts",
     "test:embedding": "tsx test_embedding_pipeline.ts",
-    "test:search": "tsx test_semantic_search.ts"
+    "test:search": "tsx test_semantic_search.ts",
+    "test:similar": "tsx test_similar_resources.ts"
   },
   "keywords": [],
   "author": "",

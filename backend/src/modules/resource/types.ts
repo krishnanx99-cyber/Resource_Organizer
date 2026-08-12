@@ -58,3 +58,9 @@ export interface SearchResult {
   limit: number;
   offset: number;
 }
+
+export interface SimilarResourcesResult {
+  items: SearchResultItem[];
+  count: number;
+  limit: number;
+}

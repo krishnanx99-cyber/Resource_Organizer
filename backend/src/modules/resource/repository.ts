@@ -88,11 +88,43 @@ export const resourceRepository = {
     return row ? { embedding: row.embedding, dimension: row.dimension } : null;
   },
 
+  async findSourceEmbedding(id: string): Promise<{
+    ownerId: string;
+    embedding: number[] | null;
+  } | null> {
+    const rows = await prisma.$queryRaw<{ ownerId: string; embedding: string | null }[]>`
+      SELECT "ownerId", embedding::text AS embedding
+      FROM "Resource"
+      WHERE id = ${id}
+    `;
+    const row = rows[0];
+    if (!row) return null;
+    if (row.embedding == null) return { ownerId: row.ownerId, embedding: null };
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(row.embedding);
+    } catch {
+      throw new Error("Failed to load resource embedding");
+    }
+
+    if (
+      !Array.isArray(parsed) ||
+      parsed.length !== EMBEDDING_DIMENSIONS ||
+      parsed.some((value) => typeof value !== "number" || !Number.isFinite(value))
+    ) {
+      throw new Error("Failed to load resource embedding");
+    }
+
+    return { ownerId: row.ownerId, embedding: parsed as number[] };
+  },
+
   async searchByEmbedding(
     ownerId: string,
     query: number[],
     limit: number,
     offset: number,
+    excludeId = "",
   ): Promise<SearchResultItem[]> {
     return prisma.$queryRaw<SearchResultItem[]>`
       SELECT "id", "ownerId", url, title, description, notes, platform, "sourceType",
@@ -102,6 +134,7 @@ export const resourceRepository = {
       FROM "Resource"
       WHERE "ownerId" = ${ownerId}
         AND embedding IS NOT NULL
+        AND id <> ${excludeId}
       ORDER BY embedding <=> ${`[${query.join(",")}]`}::vector
       LIMIT ${limit} OFFSET ${offset}
     `;

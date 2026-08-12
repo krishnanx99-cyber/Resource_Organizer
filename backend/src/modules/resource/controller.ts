@@ -1,6 +1,11 @@
 import type { Request, Response, NextFunction } from "express";
 import { resourceService } from "./service.ts";
-import { createResourceSchema, updateResourceSchema, searchQuerySchema } from "./validator.ts";
+import {
+  createResourceSchema,
+  updateResourceSchema,
+  searchQuerySchema,
+  similarResourcesQuerySchema,
+} from "./validator.ts";
 
 export const resourceController = {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -36,6 +41,16 @@ export const resourceController = {
     try {
       const resource = await resourceService.findById(String(req.params.id), req.user!.userId);
       res.json(resource);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async findSimilar(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { limit } = similarResourcesQuerySchema.parse(req.query);
+      const result = await resourceService.findSimilar(String(req.params.id), req.user!.userId, limit);
+      res.json(result);
     } catch (err) {
       next(err);
     }
