@@ -15,6 +15,7 @@ export type SafeResource = Pick<
   | "metadata"
   | "whySaved"
   | "type"
+  | "transcriptStatus"
   | "openedCount"
   | "firstOpenedAt"
   | "lastOpenedAt"

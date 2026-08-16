@@ -4,6 +4,7 @@ import { redis } from "./config/redis.ts";
 import { prisma } from "./shared/prisma.ts";
 import { startMetadataWorker } from "./modules/metadata/queue.ts";
 import { startEmbeddingWorker } from "./modules/embedding/queue.ts";
+import { startYouTubeWorker } from "./modules/youtube/queue.ts";
 
 try {
   await prisma.$queryRaw`SELECT 1`;
@@ -26,6 +27,9 @@ logger.info("Metadata worker started");
 
 startEmbeddingWorker();
 logger.info("Embedding worker started");
+
+startYouTubeWorker();
+logger.info("YouTube worker started");
 
 app.listen(env.PORT, () => {
   logger.info(`Server running on port ${env.PORT}`);

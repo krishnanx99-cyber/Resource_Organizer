@@ -37,6 +37,16 @@ export const resourceController = {
     }
   },
 
+  async searchChunks(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { q, limit, offset } = searchQuerySchema.parse(req.query);
+      const result = await resourceService.searchChunks(req.user!.userId, q, limit, offset);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async findById(req: Request, res: Response, next: NextFunction) {
     try {
       const resource = await resourceService.findById(String(req.params.id), req.user!.userId);

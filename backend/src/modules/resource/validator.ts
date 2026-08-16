@@ -34,6 +34,11 @@ export const createResourceSchema = z.discriminatedUnion("type", [
     type: z.literal(ResourceType.TEXT),
     content: z.string().min(1, "Content is required"),
   }).strict(),
+  z.object({
+    ...baseFields,
+    type: z.literal(ResourceType.YOUTUBE),
+    url: z.string().url("Invalid URL"),
+  }).strict(),
 ]) satisfies z.Schema<CreateResourceInput>;
 
 export const updateResourceSchema = z.object({
@@ -78,6 +83,22 @@ export const updateResourceSchema = z.object({
         code: z.ZodIssueCode.custom,
         message: "content is required for TEXT resources",
         path: ["content"],
+      });
+    }
+  }
+  if (data.type === ResourceType.YOUTUBE) {
+    if (data.content !== undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "content is not allowed for YOUTUBE resources",
+        path: ["content"],
+      });
+    }
+    if (!data.url) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "url is required for YOUTUBE resources",
+        path: ["url"],
       });
     }
   }

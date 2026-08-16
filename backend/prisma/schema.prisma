@@ -20,9 +20,18 @@ enum ClusterSuggestionStatus {
   DISMISSED
 }
 
+enum TranscriptStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  UNSUPPORTED
+}
+
 enum ResourceType {
   URL
   TEXT
+  YOUTUBE
 }
 
 model User {
@@ -52,6 +61,7 @@ model Resource {
   whySaved      String?
   type          ResourceType @default(URL)
   content        String?
+  transcriptStatus TranscriptStatus?
   embedding      Unsupported("vector(1536)")?
   openedCount   Int       @default(0)
   firstOpenedAt DateTime?
@@ -61,10 +71,28 @@ model Resource {
 
   owner    User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   clusters ResourceCluster[]
+  chunks   ResourceChunk[]
 
   @@index([ownerId])
   @@index([url])
   @@index([createdAt])
+}
+
+model ResourceChunk {
+  id         String    @id @default(cuid())
+  resourceId String
+  index      Int
+  text       String
+  startTime  Float?
+  endTime    Float?
+  embedding  Unsupported("vector(1536)")?
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+
+  resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@unique([resourceId, index])
+  @@index([resourceId])
 }
 
 model Cluster {

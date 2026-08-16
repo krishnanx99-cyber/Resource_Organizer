@@ -1,5 +1,9 @@
 import { prisma } from "../../shared/prisma.ts";
-import { ResourceType, type Prisma } from "../../../generated/prisma/client.ts";
+import {
+  ResourceType,
+  TranscriptStatus,
+  type Prisma,
+} from "../../../generated/prisma/client.ts";
 import { EMBEDDING_DIMENSIONS } from "../embedding/embedding.service.ts";
 import type { SearchResultItem } from "./types.ts";
 
@@ -58,6 +62,13 @@ export const resourceRepository = {
     return prisma.resource.update({
       where: { id },
       data: { metadata: metadata as Prisma.InputJsonValue },
+    });
+  },
+
+  setTranscriptStatus(id: string, status: TranscriptStatus) {
+    return prisma.resource.update({
+      where: { id },
+      data: { transcriptStatus: status },
     });
   },
 

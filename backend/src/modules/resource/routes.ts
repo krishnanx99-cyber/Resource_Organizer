@@ -9,6 +9,7 @@ resourceRoutes.use(authenticate);
 resourceRoutes.post("/", resourceController.create);
 resourceRoutes.get("/", resourceController.findAll);
 resourceRoutes.get("/search", resourceController.search);
+resourceRoutes.get("/search/chunks", resourceController.searchChunks);
 resourceRoutes.get("/:id", resourceController.findById);
 resourceRoutes.get("/:id/similar", resourceController.findSimilar);
 resourceRoutes.patch("/:id", resourceController.update);
