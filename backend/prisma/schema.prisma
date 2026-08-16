@@ -28,6 +28,7 @@ model User {
   updatedAt    DateTime   @updatedAt
 
   resources Resource[]
+  clusters  Cluster[]
 }
 
 model Resource {
@@ -61,6 +62,7 @@ model Resource {
 
 model Cluster {
   id          String        @id @default(cuid())
+  ownerId     String
   name        String
   description String?
   confidence  Float?
@@ -68,9 +70,12 @@ model Cluster {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
+  owner     User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   resources ResourceCluster[]
 
+  @@index([ownerId])
   @@index([status])
+  @@index([ownerId, status])
 }
 
 model ResourceCluster {
@@ -82,4 +87,5 @@ model ResourceCluster {
   cluster  Cluster  @relation(fields: [clusterId], references: [id], onDelete: Cascade)
 
   @@id([resourceId, clusterId])
+  @@index([clusterId])
 }
