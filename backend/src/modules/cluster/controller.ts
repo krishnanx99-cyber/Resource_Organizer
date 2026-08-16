@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { clusterService } from "./service.ts";
 import { suggestionService } from "./suggestion.service.ts";
-import { createClusterSchema, updateClusterSchema } from "./validator.ts";
+import { createClusterSchema, updateClusterSchema, approveSuggestionParamSchema } from "./validator.ts";
 
 export const clusterController = {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -93,6 +93,16 @@ export const clusterController = {
     try {
       const suggestions = await suggestionService.suggestForOwner(req.user!.userId);
       res.json({ suggestions });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async approveSuggestion(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { suggestionId } = approveSuggestionParamSchema.parse(req.params);
+      const { cluster, created } = await suggestionService.approve(req.user!.userId, suggestionId);
+      res.status(created ? 201 : 200).json(cluster);
     } catch (err) {
       next(err);
     }

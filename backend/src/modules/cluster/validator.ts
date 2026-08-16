@@ -16,3 +16,9 @@ export const updateClusterSchema = z
     status: z.nativeEnum(ClusterStatus).optional(),
   })
   .strict() satisfies z.Schema<UpdateClusterInput>;
+
+export const approveSuggestionParamSchema = z
+  .object({
+    suggestionId: z.string().min(1, "Suggestion id is required"),
+  })
+  .strict();

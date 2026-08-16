@@ -3,9 +3,17 @@ import OpenAI from "openai";
 import { env } from "../../config/env.ts";
 import { prisma } from "../../shared/prisma.ts";
 import { resourceRepository } from "../resource/repository.ts";
+import { clusterRepository } from "./repository.ts";
+import { suggestionRepository } from "./suggestion.repository.ts";
 import { EMBEDDING_DIMENSIONS } from "../embedding/embedding.service.ts";
-import { AppError } from "../../shared/errors.ts";
-import type { ClusterSuggestion } from "./types.ts";
+import { AppError, NotFoundError } from "../../shared/errors.ts";
+import { ClusterStatus, type ClusterSuggestionStatus } from "../../../generated/prisma/client.ts";
+import type {
+  ApproveResult,
+  ClusterSuggestion,
+  PersistedClusterSuggestion,
+  SafeCluster,
+} from "./types.ts";
 import type { SearchResultItem } from "../resource/types.ts";
 
 const SUGGESTION_MODEL = "gpt-4o-mini";
@@ -196,13 +204,48 @@ async function buildSuggestion(
   }
 }
 
+async function findOwnedResource(ownerId: string, resourceId: string) {
+  const resource = await resourceRepository.findById(resourceId);
+  if (!resource || resource.ownerId !== ownerId) {
+    throw new NotFoundError("Resource");
+  }
+  return resource;
+}
+
+function signatureOf(resourceIds: string[]): string {
+  return [...resourceIds].sort().join("|");
+}
+
+function toPersisted(
+  suggestion: {
+    id: string;
+    name: string;
+    description: string | null;
+    resourceIds: string[];
+    status: ClusterSuggestionStatus;
+  },
+): PersistedClusterSuggestion {
+  return {
+    id: suggestion.id,
+    name: suggestion.name,
+    description: suggestion.description,
+    resourceIds: suggestion.resourceIds,
+    status: suggestion.status,
+  };
+}
+
 export const suggestionService = {
   async suggestForOwner(
     ownerId: string,
     options: { llm?: LLMBridge } = {},
-  ): Promise<ClusterSuggestion[]> {
+  ): Promise<PersistedClusterSuggestion[]> {
+    const pendingAfter = async () => {
+      const pending = await suggestionRepository.findAllPendingByOwner(ownerId);
+      return pending.map(toPersisted);
+    };
+
     const sample = await loadEmbeddedSample(ownerId);
-    if (sample.length < 2) return [];
+    if (sample.length < 2) return pendingAfter();
 
     const llm: LLMBridge = options.llm ?? defaultLLM;
 
@@ -244,11 +287,69 @@ export const suggestionService = {
       if (groups.length >= MAX_GROUPS) break;
     }
 
-    const suggestions: ClusterSuggestion[] = [];
+    const generated: ClusterSuggestion[] = [];
     for (const group of groups) {
       const suggestion = await buildSuggestion(group, llm);
-      if (suggestion) suggestions.push(suggestion);
+      if (suggestion) generated.push(suggestion);
     }
-    return suggestions;
+
+    const existing = await suggestionRepository.findAllPendingByOwner(ownerId);
+    const existingSignatures = new Set(existing.map((s) => signatureOf(s.resourceIds)));
+    const toCreate = generated.filter(
+      (suggestion) => !existingSignatures.has(signatureOf(suggestion.resourceIds)),
+    );
+    if (toCreate.length > 0) {
+      await suggestionRepository.createAll(
+        toCreate.map((suggestion) => ({ ownerId, ...suggestion })),
+      );
+    }
+
+    return pendingAfter();
+  },
+
+  async approve(ownerId: string, suggestionId: string): Promise<ApproveResult> {
+    const suggestion = await suggestionRepository.findById(suggestionId);
+    if (!suggestion || suggestion.ownerId !== ownerId) {
+      throw new NotFoundError("ClusterSuggestion");
+    }
+
+    if (suggestion.approvedClusterId) {
+      const cluster = await clusterRepository.findById(suggestion.approvedClusterId);
+      if (!cluster || cluster.ownerId !== ownerId) {
+        throw new NotFoundError("Cluster");
+      }
+      return { cluster: toSafeCluster(cluster), created: false };
+    }
+
+    const resourceIds = [...new Set(suggestion.resourceIds)];
+    for (const resourceId of resourceIds) {
+      await findOwnedResource(ownerId, resourceId);
+    }
+
+    const created = await prisma.$transaction(async (tx) => {
+      const cluster = await clusterRepository.create(
+        {
+          ownerId,
+          name: suggestion.name,
+          description: suggestion.description ?? undefined,
+          status: ClusterStatus.ACTIVE,
+        },
+        tx,
+      );
+      for (const resourceId of resourceIds) {
+        await clusterRepository.addResource(cluster.id, resourceId, tx);
+      }
+      await suggestionRepository.markApproved(suggestion.id, cluster.id, tx);
+      return cluster;
+    });
+
+    return { cluster: toSafeCluster(created), created: true };
   },
 };
+
+function toSafeCluster(
+  cluster: Awaited<ReturnType<typeof clusterRepository.create>>,
+): SafeCluster {
+  const { description, name, confidence, status, createdAt, updatedAt, ...rest } = cluster;
+  return { ...rest, description, name, confidence, status, createdAt, updatedAt };
+}

@@ -3,6 +3,7 @@ import { prisma } from "../shared/prisma.ts";
 import { authRoutes } from "../modules/auth/routes.ts";
 import { resourceRoutes } from "../modules/resource/routes.ts";
 import { clusterRoutes } from "../modules/cluster/routes.ts";
+import { suggestionRoutes } from "../modules/cluster/suggestion.routes.ts";
 
 const routes = Router();
 
@@ -22,5 +23,6 @@ routes.get("/health", async (_req, res) => {
 routes.use("/api/auth", authRoutes);
 routes.use("/api/resources", resourceRoutes);
 routes.use("/api/clusters", clusterRoutes);
+routes.use("/api/cluster-suggestions", suggestionRoutes);
 
 export { routes };

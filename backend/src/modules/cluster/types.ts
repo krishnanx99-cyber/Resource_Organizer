@@ -1,4 +1,8 @@
-import { type Cluster, ClusterStatus } from "../../../generated/prisma/client.ts";
+import {
+  type Cluster,
+  type ClusterSuggestion as ClusterSuggestionRecord,
+  ClusterStatus,
+} from "../../../generated/prisma/client.ts";
 
 export type SafeCluster = Pick<
   Cluster,
@@ -20,4 +24,14 @@ export interface ClusterSuggestion {
   name: string;
   description: string;
   resourceIds: string[];
+}
+
+export type PersistedClusterSuggestion = Pick<
+  ClusterSuggestionRecord,
+  "id" | "name" | "description" | "resourceIds" | "status"
+>;
+
+export interface ApproveResult {
+  cluster: SafeCluster;
+  created: boolean;
 }

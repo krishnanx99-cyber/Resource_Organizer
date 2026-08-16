@@ -2,8 +2,11 @@ import { prisma } from "../../shared/prisma.ts";
 import { ClusterStatus, type Prisma } from "../../../generated/prisma/client.ts";
 
 export const clusterRepository = {
-  create(data: { ownerId: string; name: string; description?: string }) {
-    return prisma.cluster.create({ data: data as Prisma.ClusterUncheckedCreateInput });
+  create(
+    data: { ownerId: string; name: string; description?: string; status?: ClusterStatus },
+    client: Prisma.TransactionClient = prisma,
+  ) {
+    return client.cluster.create({ data: data as Prisma.ClusterUncheckedCreateInput });
   },
 
   findAllByOwner(ownerId: string) {
@@ -35,8 +38,12 @@ export const clusterRepository = {
     return prisma.cluster.delete({ where: { id } });
   },
 
-  addResource(clusterId: string, resourceId: string) {
-    return prisma.resourceCluster.create({
+  addResource(
+    clusterId: string,
+    resourceId: string,
+    client: Prisma.TransactionClient = prisma,
+  ) {
+    return client.resourceCluster.create({
       data: { clusterId, resourceId },
     });
   },

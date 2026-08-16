@@ -14,6 +14,12 @@ enum ClusterStatus {
   ARCHIVED
 }
 
+enum ClusterSuggestionStatus {
+  PENDING
+  APPROVED
+  DISMISSED
+}
+
 enum ResourceType {
   URL
   TEXT
@@ -29,6 +35,7 @@ model User {
 
   resources Resource[]
   clusters  Cluster[]
+  clusterSuggestions ClusterSuggestion[]
 }
 
 model Resource {
@@ -72,6 +79,7 @@ model Cluster {
 
   owner     User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   resources ResourceCluster[]
+  suggestion ClusterSuggestion?
 
   @@index([ownerId])
   @@index([status])
@@ -88,4 +96,22 @@ model ResourceCluster {
 
   @@id([resourceId, clusterId])
   @@index([clusterId])
+}
+
+model ClusterSuggestion {
+  id                String                @id @default(cuid())
+  ownerId           String
+  name              String
+  description       String?
+  resourceIds       String[]
+  status            ClusterSuggestionStatus @default(PENDING)
+  approvedClusterId String?            @unique
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  owner   User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  cluster Cluster? @relation(fields: [approvedClusterId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId])
+  @@index([status])
 }
