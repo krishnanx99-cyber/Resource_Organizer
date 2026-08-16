@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { prisma } from "../../shared/prisma.ts";
 import { type Prisma } from "../../../generated/prisma/client.ts";
 import { EMBEDDING_DIMENSIONS } from "../embedding/embedding.service.ts";
-import type { ResourceChunkInput } from "../youtube/types.ts";
+import type { ResourceChunkInput } from "../chunks/types.ts";
 
 function vectorLiteral(vector: number[]): string {
   return `[${vector.join(",")}]`;
@@ -15,6 +15,7 @@ export interface ChunkSearchRow {
   text: string;
   startTime: number | null;
   endTime: number | null;
+  metadata: Record<string, unknown> | null;
   createdAt: Date;
   title: string;
   url: string | null;
@@ -63,6 +64,7 @@ export const chunkRepository = {
         c.text,
         c."startTime",
         c."endTime",
+        c.metadata,
         c."createdAt",
         r.title,
         r.url,

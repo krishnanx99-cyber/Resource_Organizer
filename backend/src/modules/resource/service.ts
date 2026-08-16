@@ -2,7 +2,7 @@ import { ResourceType } from "../../../generated/prisma/client.ts";
 import { resourceRepository } from "./repository.ts";
 import { chunkRepository } from "./chunk.repository.ts";
 import { AppError } from "../../shared/errors.ts";
-import { metadataQueue } from "../metadata/queue.ts";
+import { webQueue } from "../web/queue.ts";
 import { embeddingQueue } from "../embedding/queue.ts";
 import { youtubeQueue } from "../youtube/queue.ts";
 import { embeddingService, semanticFieldsChanged } from "../embedding/embedding.service.ts";
@@ -14,7 +14,7 @@ import type {
   CreateResourceInput,
   UpdateResourceInput,
 } from "./types.ts";
-import type { ChunkSearchResult, ChunkSearchItem } from "../youtube/types.ts";
+import type { ChunkSearchResult, ChunkSearchItem } from "../chunks/types.ts";
 
 export const resourceService = {
   async create(ownerId: string, input: CreateResourceInput): Promise<SafeResource> {
@@ -22,11 +22,8 @@ export const resourceService = {
 
     await embeddingQueue.add("embed", { resourceId: resource.id });
 
-    if (resource.type === ResourceType.URL) {
-      await metadataQueue.add("extract", {
-        resourceId: resource.id,
-        url: input.url!,
-      });
+    if (resource.type === ResourceType.URL && input.url) {
+      await webQueue.add("enrich", { resourceId: resource.id });
     }
 
     if (resource.type === ResourceType.YOUTUBE && input.url) {
@@ -73,6 +70,14 @@ export const resourceService = {
       await youtubeQueue.add("process", { resourceId });
     }
 
+    if (
+      updated.type === ResourceType.URL &&
+      updated.url &&
+      (updated.url !== resource.url || resource.type !== ResourceType.URL)
+    ) {
+      await webQueue.add("enrich", { resourceId });
+    }
+
     return updated;
   },
 
@@ -112,6 +117,7 @@ export const resourceService = {
       text: row.text,
       startTime: row.startTime,
       endTime: row.endTime,
+      metadata: row.metadata,
       createdAt: row.createdAt,
       similarity: row.similarity,
       deepLink: deepLinkFromResourceUrl(row.url, row.startTime),

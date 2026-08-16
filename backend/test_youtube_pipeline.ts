@@ -223,9 +223,9 @@ async function main() {
       }),
     });
     eq(res.status, 201, "YOUTUBE create returns 201");
-    const created = (await res.json()) as { id: string; type: string; transcriptStatus: string | null };
+    const created = (await res.json()) as { id: string; type: string; processingStatus: string | null };
     eq(created.type, "YOUTUBE", "created resource type is YOUTUBE");
-    eq(created.transcriptStatus, null, "transcriptStatus null before processing");
+    eq(created.processingStatus, null, "processingStatus null before processing");
 
     // --- 2. process with injected mock segments ---
     const outcome = await youtubeService.process(created.id, {
@@ -242,8 +242,8 @@ async function main() {
 
     res = await fetch(`${base}/api/resources/${created.id}`, { headers: authA });
     eq(res.status, 200, "GET resource returns 200");
-    const resourceBody = (await res.json()) as { transcriptStatus: string; metadata: { youtube?: { videoId: string } } };
-    eq(resourceBody.transcriptStatus, "COMPLETED", "transcriptStatus is COMPLETED");
+    const resourceBody = (await res.json()) as { processingStatus: string; metadata: { youtube?: { videoId: string } } };
+    eq(resourceBody.processingStatus, "COMPLETED", "processingStatus is COMPLETED");
     eq(resourceBody.metadata?.youtube?.videoId, VIDEO_ID, "metadata.youtube.videoId persisted");
 
     // --- 3. semantic chunk search: query does NOT repeat chunk wording ---
@@ -386,7 +386,7 @@ async function main() {
     });
     eq(unsupportedOutcome, "unsupported", "process reports unsupported");
     const unsupportedInfo = await resourceRepository.findById(unsupportedRes.id);
-    eq(unsupportedInfo?.transcriptStatus, TranscriptStatus.UNSUPPORTED, "transcriptStatus is UNSUPPORTED");
+    eq(unsupportedInfo?.processingStatus, TranscriptStatus.UNSUPPORTED, "processingStatus is UNSUPPORTED");
     eq(await chunkRepository.countByResource(unsupportedRes.id), 0, "no chunks stored for unsupported video");
 
     // --- 7. unexpected failure surfaces as FAILED ---
@@ -413,7 +413,7 @@ async function main() {
     }
     ok(threw, "process throws on unexpected failure");
     const failInfo = await resourceRepository.findById(failRes.id);
-    eq(failInfo?.transcriptStatus, TranscriptStatus.FAILED, "transcriptStatus is FAILED after unexpected error");
+    eq(failInfo?.processingStatus, TranscriptStatus.FAILED, "processingStatus is FAILED after unexpected error");
 
     console.log("\nALL YOUTUBE PIPELINE TESTS PASSED");
   } catch (err) {

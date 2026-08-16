@@ -65,7 +65,7 @@ async function settleCompleted(resourceId: string, chunks: ResourceChunkInput[])
     await chunkRepository.replaceAll(resourceId, chunks, tx);
     await tx.resource.update({
       where: { id: resourceId },
-      data: { transcriptStatus: COMPLETED_STATUS },
+      data: { processingStatus: COMPLETED_STATUS },
     });
   });
 }
@@ -79,34 +79,34 @@ export const youtubeService = {
     }
 
     if (resource.type !== ResourceType.YOUTUBE || !resource.url) {
-      await resourceRepository.setTranscriptStatus(resourceId, UNSUPPORTED_STATUS);
+      await resourceRepository.setProcessingStatus(resourceId, UNSUPPORTED_STATUS);
       return "unsupported";
     }
 
     const videoId = extractVideoId(resource.url);
     if (!videoId) {
-      await resourceRepository.setTranscriptStatus(resourceId, UNSUPPORTED_STATUS);
+      await resourceRepository.setProcessingStatus(resourceId, UNSUPPORTED_STATUS);
       return "unsupported";
     }
 
-    await resourceRepository.setTranscriptStatus(resourceId, TranscriptStatus.PROCESSING);
+    await resourceRepository.setProcessingStatus(resourceId, TranscriptStatus.PROCESSING);
 
     let segments;
     try {
       const fetched = await (options.fetchSegments ?? fetchVideoTranscript)(videoId);
       if (fetched.kind === "unsupported") {
-        await resourceRepository.setTranscriptStatus(resourceId, UNSUPPORTED_STATUS);
+        await resourceRepository.setProcessingStatus(resourceId, UNSUPPORTED_STATUS);
         return "unsupported";
       }
       segments = fetched.segments;
     } catch (err) {
       logger.error({ err, resourceId, videoId }, "YouTube transcript fetch failed");
-      await resourceRepository.setTranscriptStatus(resourceId, TranscriptStatus.FAILED);
+      await resourceRepository.setProcessingStatus(resourceId, TranscriptStatus.FAILED);
       throw err;
     }
 
     if (segments.length === 0) {
-      await resourceRepository.setTranscriptStatus(resourceId, UNSUPPORTED_STATUS);
+      await resourceRepository.setProcessingStatus(resourceId, UNSUPPORTED_STATUS);
       return "unsupported";
     }
 

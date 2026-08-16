@@ -65,10 +65,10 @@ export const resourceRepository = {
     });
   },
 
-  setTranscriptStatus(id: string, status: TranscriptStatus) {
+  setProcessingStatus(id: string, status: TranscriptStatus) {
     return prisma.resource.update({
       where: { id },
-      data: { transcriptStatus: status },
+      data: { processingStatus: status },
     });
   },
 

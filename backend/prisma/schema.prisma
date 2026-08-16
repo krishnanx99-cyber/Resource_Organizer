@@ -60,8 +60,8 @@ model Resource {
   metadata      Json?
   whySaved      String?
   type          ResourceType @default(URL)
-  content        String?
-  transcriptStatus TranscriptStatus?
+  content          String?
+  processingStatus TranscriptStatus?
   embedding      Unsupported("vector(1536)")?
   openedCount   Int       @default(0)
   firstOpenedAt DateTime?
